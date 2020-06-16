@@ -2,84 +2,9 @@ const db = require("../database/models");
 var Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const dbController = require("./dbController");
-var unitsCharged = 0;
-var unitsSofar = 0;
-const meterCess = 0.01;
-const gstRate = 0.09;
+const calculations = require("./calculationFunctions");
 const unitsCalculated = 50;
 const fuelSurChargeRate = 0.1;
-
-function calculateMonthlyTotals(
-  meterObject,
-  energyChargesObj,
-  fixedChargeObj,
-  monthlyConsumption
-) {
-  var monthlySummaryObj = {
-    monthlyConsumption: 0,
-    totalAmount: 0,
-    fixedCharge: 0,
-    energyCharge: 0,
-    meterCharge: 0,
-  };
-  monthlySummaryObj.monthlyConsumption = monthlyConsumption;
-  monthlySummaryObj.fixedCharge = fixedChargeObj.fixedCharge;
-  monthlySummaryObj.meterCharge = meterObject.total;
-  monthlySummaryObj.energyCharge = energyChargesObj.total;
-  monthlySummaryObj.totalAmount = parseFloat(
-    (
-      monthlySummaryObj.fixedCharge +
-      monthlySummaryObj.meterCharge +
-      monthlySummaryObj.energyCharge
-    ).toFixed(2)
-  );
-
-  return monthlySummaryObj;
-}
-
-function calculateBiMonthlyTotals(monthlySummaryObj) {
-  var bimonthlySummaryObj = {
-    totalConsumption: 0,
-    totalAmount: 0,
-    fixedCharge: 0,
-    energyCharge: 0,
-    meterCharge: 0,
-  };
-  bimonthlySummaryObj.totalConsumption =
-    monthlySummaryObj.monthlyConsumption * 2;
-  bimonthlySummaryObj.fixedCharge = monthlySummaryObj.fixedCharge * 2;
-  bimonthlySummaryObj.meterCharge = monthlySummaryObj.meterCharge * 2;
-  bimonthlySummaryObj.energyCharge = monthlySummaryObj.energyCharge * 2;
-  bimonthlySummaryObj.totalAmount = monthlySummaryObj.totalAmount * 2;
-
-  return bimonthlySummaryObj;
-}
-
-function calculateMeterCharges(singlePhase) {
-  var meterObject = {
-    total: 0,
-    meterRentDetails: {
-      rent: 0,
-      cess: 0,
-      cgst: 0,
-      sgst: 0,
-    },
-  };
-  meterObject.meterRentDetails.rent = singlePhase ? 6 : 12;
-  meterObject.meterRentDetails.cess =
-    meterObject.meterRentDetails.rent * meterCess;
-  meterObject.meterRentDetails.cgst =
-    meterObject.meterRentDetails.rent * gstRate;
-  meterObject.meterRentDetails.sgst =
-    meterObject.meterRentDetails.rent * gstRate;
-
-  meterObject.total =
-    meterObject.meterRentDetails.rent +
-    meterObject.meterRentDetails.cess +
-    meterObject.meterRentDetails.cgst +
-    meterObject.meterRentDetails.sgst;
-  return meterObject;
-}
 
 async function calculateFixedCharges(
   telescopic,
@@ -105,6 +30,9 @@ async function calculateEnergyCharges(
   singlePhase,
   monthlyConsumption
 ) {
+  var unitsCharged = 0;
+  var unitsSofar = 0;
+
   var energyChargesObj = {
     total: 0,
     consumptionCharge: 0,
@@ -121,6 +49,8 @@ async function calculateEnergyCharges(
     monthlyConsumption % unitsCalculated == 0
       ? Math.floor(monthlyConsumption / unitsCalculated)
       : Math.floor(monthlyConsumption / unitsCalculated) + 1;
+
+  console.log("numberOfSlabs", numberOfSlabs);
 
   tariffCard.forEach((element, index) => {
     tariffSlab = element.dataValues;
@@ -159,7 +89,7 @@ async function calculateEnergyCharges(
         break;
       case 5:
         energyChargesObj.slabs.push({
-          "200 - 50": chargeForTheSlab,
+          "200 - 250": chargeForTheSlab,
         });
         break;
     }
@@ -184,7 +114,9 @@ module.exports = {
     totalUnits = req.body.finalReading - req.body.startingReading;
     monthlyConsumption = Math.floor(totalUnits / 2);
 
-    billObject.meterRent = calculateMeterCharges(req.body.singlePhase);
+    billObject.meterRent = await calculations.calculateMeterCharges(
+      req.body.singlePhase
+    );
 
     billObject.fixedCharge = await calculateFixedCharges(
       req.body.telescopic,
@@ -198,14 +130,14 @@ module.exports = {
       monthlyConsumption
     );
 
-    billObject.monthlySummary = await calculateMonthlyTotals(
+    billObject.monthlySummary = await calculations.calculateMonthlyTotals(
       billObject.meterRent,
       billObject.energyCharge,
       billObject.fixedCharge,
       monthlyConsumption
     );
 
-    billObject.bimonthlySummary = await calculateBiMonthlyTotals(
+    billObject.bimonthlySummary = await calculations.calculateBiMonthlyTotals(
       billObject.monthlySummary
     );
 
