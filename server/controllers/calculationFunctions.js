@@ -110,8 +110,6 @@ module.exports = {
     fixedChargeObj.fixedCharge = parseFloat(
       fixedChargeSlab.dataValues.fixedCharge
     );
-    console.log("monthlyConsumption", monthlyConsumption);
-    console.log(fixedChargeSlab.dataValues);
     return fixedChargeObj;
   },
 
@@ -153,10 +151,8 @@ module.exports = {
 
       energyChargesObj.consumptionCharge += chargeForTheSlab;
 
-      console.log(index + 1, unitsCharged, unitsSofar);
       var stringToPush =
         unitsCharged + " units @ Rs" + tariffSlab.perUnitCharge + "/unit";
-      console.log(stringToPush);
       energyChargesObj.slabs.push({ [stringToPush]: chargeForTheSlab });
     });
     energyChargesObj.fuelSurcharge = parseFloat(
