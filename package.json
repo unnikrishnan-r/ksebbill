@@ -1,0 +1,50 @@
+{
+  "name": "ksebbill",
+  "version": "1.0.0",
+  "description": "Application that generates your KSEB bill",
+  "main": "server.js",
+  "lint-staged": {
+    "*.js": "eslint"
+  },
+  "scripts": {
+    "precommit": "lint-staged",
+    "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
+    "start:prod": "node ./server/server.js",
+    "start:dev": "concurrently \"nodemon --ignore 'client/*'\" \"npm run client\"",
+    "client": "cd client && npm run start",
+    "seed": "node server/helpers/dbload.js",
+    "install": "cd client && npm install",
+    "build": "cd client && npm run build",
+    "heroku-postbuild": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unnikrishnan-r/ksebbill.git"
+  },
+  "author": "Unnikrishnan Ramachandran",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-eslint": "10.0.3",
+    "concurrently": "^4.1.2",
+    "eslint": "^6.1.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "nodemon": "^1.19.4",
+    "prettier": "^1.19.1"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.7.2",
+    "axios": "^0.18.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.16.3",
+    "if-env": "^1.0.4",
+    "moment": "^2.24.0",
+    "mysql2": "^2.0.0",
+    "sequelize": "^5.21.2"
+  },
+  "bugs": {
+    "url": "https://github.com/unnikrishnan-r/ksebbill/issues"
+  },
+  "homepage": "https://github.com/unnikrishnan-r/ksebbill#readme"
+}
