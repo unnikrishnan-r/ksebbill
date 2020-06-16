@@ -1,8 +1,173 @@
 const db = require("../database/models");
 var Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const telescopicController = require("./telescopicController");
+const dbController = require("./dbController");
+var unitsCharged = 0;
+var unitsSofar = 0;
+const meterCess = 0.01;
+const gstRate = 0.09;
+const unitsCalculated = 50;
+const fuelSurChargeRate = 0.1;
 
+function calculateMonthlyTotals(
+  meterObject,
+  energyChargesObj,
+  fixedChargeObj,
+  monthlyConsumption
+) {
+  var monthlySummaryObj = {
+    monthlyConsumption: 0,
+    totalAmount: 0,
+    fixedCharge: 0,
+    energyCharge: 0,
+    meterCharge: 0,
+  };
+  monthlySummaryObj.monthlyConsumption = monthlyConsumption;
+  monthlySummaryObj.fixedCharge = fixedChargeObj.fixedCharge;
+  monthlySummaryObj.meterCharge = meterObject.total;
+  monthlySummaryObj.energyCharge = energyChargesObj.total;
+  monthlySummaryObj.totalAmount = parseFloat(
+    (
+      monthlySummaryObj.fixedCharge +
+      monthlySummaryObj.meterCharge +
+      monthlySummaryObj.energyCharge
+    ).toFixed(2)
+  );
+
+  return monthlySummaryObj;
+}
+
+function calculateBiMonthlyTotals(monthlySummaryObj) {
+  var bimonthlySummaryObj = {
+    totalConsumption: 0,
+    totalAmount: 0,
+    fixedCharge: 0,
+    energyCharge: 0,
+    meterCharge: 0,
+  };
+  bimonthlySummaryObj.totalConsumption =
+    monthlySummaryObj.monthlyConsumption * 2;
+  bimonthlySummaryObj.fixedCharge = monthlySummaryObj.fixedCharge * 2;
+  bimonthlySummaryObj.meterCharge = monthlySummaryObj.meterCharge * 2;
+  bimonthlySummaryObj.energyCharge = monthlySummaryObj.energyCharge * 2;
+  bimonthlySummaryObj.totalAmount = monthlySummaryObj.totalAmount * 2;
+
+  return bimonthlySummaryObj;
+}
+
+function calculateMeterCharges(singlePhase) {
+  var meterObject = {
+    total: 0,
+    meterRentDetails: {
+      rent: 0,
+      cess: 0,
+      cgst: 0,
+      sgst: 0,
+    },
+  };
+  meterObject.meterRentDetails.rent = singlePhase ? 6 : 12;
+  meterObject.meterRentDetails.cess =
+    meterObject.meterRentDetails.rent * meterCess;
+  meterObject.meterRentDetails.cgst =
+    meterObject.meterRentDetails.rent * gstRate;
+  meterObject.meterRentDetails.sgst =
+    meterObject.meterRentDetails.rent * gstRate;
+
+  meterObject.total =
+    meterObject.meterRentDetails.rent +
+    meterObject.meterRentDetails.cess +
+    meterObject.meterRentDetails.cgst +
+    meterObject.meterRentDetails.sgst;
+  return meterObject;
+}
+
+async function calculateFixedCharges(
+  telescopic,
+  singlePhase,
+  monthlyConsumption
+) {
+  var fixedChargeObj = {
+    fixedCharge: 0,
+  };
+  var fixedChargeSlab = await dbController.getFixedCharge(
+    telescopic,
+    singlePhase,
+    monthlyConsumption
+  );
+  fixedChargeObj.fixedCharge = parseFloat(
+    fixedChargeSlab.dataValues.fixedCharge
+  );
+  return fixedChargeObj;
+}
+
+async function calculateEnergyCharges(
+  telescopic,
+  singlePhase,
+  monthlyConsumption
+) {
+  var energyChargesObj = {
+    total: 0,
+    consumptionCharge: 0,
+    fuelSurCharge: 0,
+    slabs: [],
+  };
+
+  var tariffCard = await dbController.getTariffCard(
+    telescopic,
+    singlePhase,
+    monthlyConsumption
+  );
+  numberOfSlabs =
+    monthlyConsumption % unitsCalculated == 0
+      ? Math.floor(monthlyConsumption / unitsCalculated)
+      : Math.floor(monthlyConsumption / unitsCalculated) + 1;
+
+  tariffCard.forEach((element, index) => {
+    tariffSlab = element.dataValues;
+    unitsCharged =
+      numberOfSlabs == index + 1 ? monthlyConsumption - unitsSofar : 50;
+    unitsSofar += unitsCharged;
+    chargeForTheSlab = unitsCharged * tariffSlab.perUnitCharge;
+
+    energyChargesObj.consumptionCharge += chargeForTheSlab;
+    energyChargesObj.fuelSurCharge = parseFloat(
+      (energyChargesObj.consumptionCharge * fuelSurChargeRate).toFixed(2)
+    );
+
+    console.log(index + 1, unitsCharged, unitsSofar);
+
+    switch (index + 1) {
+      case 1:
+        energyChargesObj.slabs.push({
+          "0 - 50": chargeForTheSlab,
+        });
+        break;
+      case 2:
+        energyChargesObj.slabs.push({
+          "51 - 100": chargeForTheSlab,
+        });
+        break;
+      case 3:
+        energyChargesObj.slabs.push({
+          "101 - 150": chargeForTheSlab,
+        });
+        break;
+      case 4:
+        energyChargesObj.slabs.push({
+          "151 - 200": chargeForTheSlab,
+        });
+        break;
+      case 5:
+        energyChargesObj.slabs.push({
+          "200 - 50": chargeForTheSlab,
+        });
+        break;
+    }
+  });
+  energyChargesObj.total =
+    energyChargesObj.consumptionCharge + energyChargesObj.fuelSurCharge;
+  return energyChargesObj;
+}
 module.exports = {
   calculateTeleBill: async function(req, res) {
     var billObject = {
@@ -10,138 +175,41 @@ module.exports = {
         telescopic: true,
         singlePhase: true,
       },
-      bimonthlySummary: {
-        totalConsumption: 0,
-        totalAmount: 0,
-        fixedCharge: 0,
-        energyCharge: 0,
-        fuelSurCharge: 0,
-        meterRentTotal: 0,
-      },
-      monthlySummary: {
-        monthlyConsumption: 0,
-        totalAmount: 0,
-        fixedCharge: 0,
-        energyCharge: 0,
-        fuelSurCharge: 0,
-        meterRentTotal: 0,
-      },
-      details: {
-        slabs: [],
-        meterRent: {
-          meterRentCharge: 0,
-          meterRentCess: 0,
-          meterRentCGST: 0,
-          meterRentSGST: 0,
-        },
-      },
+      bimonthlySummary: {},
+      monthlySummary: {},
+      meterRent: {},
+      fixedCharge: {},
     };
-    unitsCharged = 0;
-    unitsSofar = 0;
-    meterCess = 0.01;
-    gstRate = 0.09;
-    unitsCalculated = 50;
-    fuelSurChargeRate = 0.1;
 
-    totalUnits = req.body.finalReading - req.body.startingReading ;
-    monthlyConsumption = Math.ceil(totalUnits / 2);
-    billObject.monthlySummary.monthlyConsumption = monthlyConsumption;
-    billObject.details.meterRent.meterRentCharge = req.body.singlePhase
-      ? 6
-      : 12;
-    billObject.details.meterRent.meterRentCess =
-      billObject.details.meterRent.meterRentCharge * meterCess;
-    billObject.details.meterRent.meterRentCGST =
-      billObject.details.meterRent.meterRentCharge * gstRate;
-    billObject.details.meterRent.meterRentSGST =
-      billObject.details.meterRent.meterRentCharge * gstRate;
+    totalUnits = req.body.finalReading - req.body.startingReading;
+    monthlyConsumption = Math.floor(totalUnits / 2);
 
-    billObject.monthlySummary.meterRentTotal =
-      billObject.details.meterRent.meterRentCharge +
-      billObject.details.meterRent.meterRentCess +
-      billObject.details.meterRent.meterRentSGST +
-      billObject.details.meterRent.meterRentCGST;
+    billObject.meterRent = calculateMeterCharges(req.body.singlePhase);
 
-    billObject.bimonthlySummary.totalConsumption = totalUnits;
-    billObject.bimonthlySummary.meterRentTotal =
-      billObject.monthlySummary.meterRentTotal * 2;
-
-    var tariffCard = await telescopicController.getTeleScopicBill(
+    billObject.fixedCharge = await calculateFixedCharges(
       req.body.telescopic,
       req.body.singlePhase,
       monthlyConsumption
     );
 
+    billObject.energyCharge = await calculateEnergyCharges(
+      req.body.telescopic,
+      req.body.singlePhase,
+      monthlyConsumption
+    );
+
+    billObject.monthlySummary = await calculateMonthlyTotals(
+      billObject.meterRent,
+      billObject.energyCharge,
+      billObject.fixedCharge,
+      monthlyConsumption
+    );
+
+    billObject.bimonthlySummary = await calculateBiMonthlyTotals(
+      billObject.monthlySummary
+    );
+
     if (monthlyConsumption <= 250) {
-      numberOfSlabs =
-        monthlyConsumption % unitsCalculated == 0
-          ? Math.floor(monthlyConsumption / unitsCalculated)
-          : Math.floor(monthlyConsumption / unitsCalculated) + 1;
-
-      tariffCard.forEach((element, index) => {
-        tariffSlab = element.dataValues;
-        unitsCharged =
-          numberOfSlabs == index + 1 ? monthlyConsumption - unitsSofar : 50;
-        unitsSofar += unitsCharged;
-        chargeForTheSlab = unitsCharged * tariffSlab.perUnitCharge;
-
-        billObject.monthlySummary.energyCharge += chargeForTheSlab;
-        billObject.monthlySummary.fuelSurCharge = parseFloat(
-          (billObject.monthlySummary.energyCharge * fuelSurChargeRate).toFixed(
-            2
-          )
-        );
-        billObject.monthlySummary.fixedCharge = parseInt(
-          tariffSlab.fixedCharge
-        );
-
-        billObject.bimonthlySummary.energyCharge =
-          billObject.monthlySummary.energyCharge * 2;
-        billObject.bimonthlySummary.fuelSurCharge =
-          billObject.monthlySummary.fuelSurCharge * 2;
-        billObject.bimonthlySummary.fixedCharge =
-          billObject.monthlySummary.fixedCharge * 2;
-
-        console.log(index + 1, unitsCharged, unitsSofar);
-
-        switch (index + 1) {
-          case 1:
-            billObject.details.slabs.push({
-              "0 - 50": chargeForTheSlab,
-            });
-            break;
-          case 2:
-            billObject.details.slabs.push({
-              "51 - 100": chargeForTheSlab,
-            });
-            break;
-          case 3:
-            billObject.details.slabs.push({
-              "101 - 150": chargeForTheSlab,
-            });
-            break;
-          case 4:
-            billObject.details.slabs.push({
-              "151 - 200": chargeForTheSlab,
-            });
-            break;
-          case 5:
-            billObject.details.slabs.push({
-              "200 - 50": chargeForTheSlab,
-            });
-            break;
-        }
-      });
-
-      billObject.monthlySummary.totalAmount = 
-      billObject.monthlySummary.energyCharge+
-      billObject.monthlySummary.fuelSurCharge+
-      billObject.monthlySummary.fixedCharge+
-      billObject.monthlySummary.meterRentTotal
-
-      billObject.bimonthlySummary.totalAmount = Math.ceil(billObject.monthlySummary.totalAmount * 2)
-
-  
       res.json(billObject);
     } else {
       res.status(422).json("Wrong API, try non telescopic billing");
