@@ -19,7 +19,7 @@ module.exports = {
         singlePhase: singlePhase,
         startingUnit: { [Op.lte]: monthlyConsumption },
         endingUnit: { [Op.gte]: monthlyConsumption },
-      },
+      }
     })
   }
 };
