@@ -6,24 +6,65 @@ const telescopicController = require("./telescopicController");
 module.exports = {
   calculateTeleBill: async function(req, res) {
     var billObject = {
-      summary: {
+      connectionDetails: {
         telescopic: true,
         singlePhase: true,
-        monthlyConsumption: 0,
+      },
+      bimonthlySummary: {
+        totalConsumption: 0,
+        totalAmount: 0,
+        fixedCharge: 0,
         energyCharge: 0,
         fuelSurCharge: 0,
-        fixedCharge: 0
+        meterRentTotal: 0,
+      },
+      monthlySummary: {
+        monthlyConsumption: 0,
+        totalAmount: 0,
+        fixedCharge: 0,
+        energyCharge: 0,
+        fuelSurCharge: 0,
+        meterRentTotal: 0,
       },
       details: {
         slabs: [],
+        meterRent: {
+          meterRentCharge: 0,
+          meterRentCess: 0,
+          meterRentCGST: 0,
+          meterRentSGST: 0,
+        },
       },
     };
     unitsCharged = 0;
     unitsSofar = 0;
-    monthlyConsumption = Math.ceil(req.body.consumedUnits / 2);
-    billObject.summary.monthlyConsumption= monthlyConsumption;
+    meterCess = 0.01;
+    gstRate = 0.09;
     unitsCalculated = 50;
-    fuelSurChargeRate = .1;
+    fuelSurChargeRate = 0.1;
+
+    totalUnits = req.body.finalReading - req.body.startingReading ;
+    monthlyConsumption = Math.ceil(totalUnits / 2);
+    billObject.monthlySummary.monthlyConsumption = monthlyConsumption;
+    billObject.details.meterRent.meterRentCharge = req.body.singlePhase
+      ? 6
+      : 12;
+    billObject.details.meterRent.meterRentCess =
+      billObject.details.meterRent.meterRentCharge * meterCess;
+    billObject.details.meterRent.meterRentCGST =
+      billObject.details.meterRent.meterRentCharge * gstRate;
+    billObject.details.meterRent.meterRentSGST =
+      billObject.details.meterRent.meterRentCharge * gstRate;
+
+    billObject.monthlySummary.meterRentTotal =
+      billObject.details.meterRent.meterRentCharge +
+      billObject.details.meterRent.meterRentCess +
+      billObject.details.meterRent.meterRentSGST +
+      billObject.details.meterRent.meterRentCGST;
+
+    billObject.bimonthlySummary.totalConsumption = totalUnits;
+    billObject.bimonthlySummary.meterRentTotal =
+      billObject.monthlySummary.meterRentTotal * 2;
 
     var tariffCard = await telescopicController.getTeleScopicBill(
       req.body.telescopic,
@@ -43,9 +84,24 @@ module.exports = {
           numberOfSlabs == index + 1 ? monthlyConsumption - unitsSofar : 50;
         unitsSofar += unitsCharged;
         chargeForTheSlab = unitsCharged * tariffSlab.perUnitCharge;
-        billObject.summary.energyCharge+= chargeForTheSlab;
-        billObject.summary.fuelSurCharge = parseFloat((billObject.summary.energyCharge * fuelSurChargeRate).toFixed(2))
-        billObject.summary.fixedCharge = parseInt(tariffSlab.fixedCharge);
+
+        billObject.monthlySummary.energyCharge += chargeForTheSlab;
+        billObject.monthlySummary.fuelSurCharge = parseFloat(
+          (billObject.monthlySummary.energyCharge * fuelSurChargeRate).toFixed(
+            2
+          )
+        );
+        billObject.monthlySummary.fixedCharge = parseInt(
+          tariffSlab.fixedCharge
+        );
+
+        billObject.bimonthlySummary.energyCharge =
+          billObject.monthlySummary.energyCharge * 2;
+        billObject.bimonthlySummary.fuelSurCharge =
+          billObject.monthlySummary.fuelSurCharge * 2;
+        billObject.bimonthlySummary.fixedCharge =
+          billObject.monthlySummary.fixedCharge * 2;
+
         console.log(index + 1, unitsCharged, unitsSofar);
 
         switch (index + 1) {
@@ -76,7 +132,17 @@ module.exports = {
             break;
         }
       });
-            res.json(billObject);
+
+      billObject.monthlySummary.totalAmount = 
+      billObject.monthlySummary.energyCharge+
+      billObject.monthlySummary.fuelSurCharge+
+      billObject.monthlySummary.fixedCharge+
+      billObject.monthlySummary.meterRentTotal
+
+      billObject.bimonthlySummary.totalAmount = Math.ceil(billObject.monthlySummary.totalAmount * 2)
+
+  
+      res.json(billObject);
     } else {
       res.status(422).json("Wrong API, try non telescopic billing");
     }
