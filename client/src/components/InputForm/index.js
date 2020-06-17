@@ -7,9 +7,9 @@ import API from "../../utils/API";
 
 class InputForm extends Component {
   state = {
-    startingReading: 4112,
-    finalReading: 4717,
-    numberOfMonths: 4,
+    startingReading: 0,
+    finalReading: 0,
+    numberOfMonths: 1,
     singlePhase: false,
     validated: false,
     customerMeter: false,
