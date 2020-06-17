@@ -15,6 +15,9 @@ class InputForm extends Component {
     customerMeter: false,
     billGenerated: false,
     billObject: {},
+    disclaimerLine1:
+      "Disclaimer: This is not an official tool from KSEB, there are some known gaps in calculating fuel.",
+    disclaimerLine2: "Please consider this as an indicative tool only",
   };
 
   handleInputChange = (event) => {
@@ -48,10 +51,20 @@ class InputForm extends Component {
         numberOfMonths: this.state.numberOfMonths,
       };
       console.log(billInput);
-      API.generateBill(billInput).then((response) => {
-        console.log(response.data);
-        this.setState({ billGenerated: true, billObject: response.data });
-      });
+      API.generateBill(billInput)
+        .then((response) => {
+          console.log(response.data.error);
+          if (!response.data.error) {
+            this.setState({ billGenerated: true, billObject: response.data });
+          } else {
+            this.setState({
+              billGenerated: false,
+              disclaimerLine2: "",
+              disclaimerLine1: response.data.error,
+            });
+          }
+        })
+        .catch((err) => console.error(err));
     }
   };
   render() {
@@ -310,16 +323,10 @@ class InputForm extends Component {
           ) : (
             <>
               <p>
-                <i>
-                  Disclaimer: This is not an official tool from KSEB, there are
-                  some known gaps in calculating fuel.
-                </i>
+                <i>{this.state.disclaimerLine1}</i>
               </p>
               <p>
-                <i>
-                  Please consider this as an indicative tool and not a perfect
-                  one.
-                </i>
+                <i>{this.state.disclaimerLine2}</i>
               </p>
             </>
           )}

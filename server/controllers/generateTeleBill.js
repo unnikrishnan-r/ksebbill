@@ -24,42 +24,47 @@ module.exports = {
     telescopicBilling = monthlyConsumption <= telescopicLimit ? true : false;
     billObject.connectionDetails.telescopicBilling = telescopicBilling;
 
-    billObject.meterRent = await calculations.calculateMeterCharges(
-      req.body.singlePhase,
-      req.body.customerMeter
-    );
+    if (totalUnits > 0) {
+      billObject.meterRent = await calculations.calculateMeterCharges(
+        req.body.singlePhase,
+        req.body.customerMeter
+      );
 
-    billObject.fixedCharge = await calculations.calculateFixedCharges(
-      telescopicBilling,
-      req.body.singlePhase,
-      monthlyConsumption
-    );
-
-    if (telescopicBilling) {
-      billObject.energyCharge = await calculations.calculateTelescopicCharges(
+      billObject.fixedCharge = await calculations.calculateFixedCharges(
         telescopicBilling,
         req.body.singlePhase,
         monthlyConsumption
       );
-    } else {
-      billObject.energyCharge = await calculations.calculateNonTelescopicCharges(
-        telescopicBilling,
-        req.body.singlePhase,
+
+      if (telescopicBilling) {
+        billObject.energyCharge = await calculations.calculateTelescopicCharges(
+          telescopicBilling,
+          req.body.singlePhase,
+          monthlyConsumption
+        );
+      } else {
+        billObject.energyCharge = await calculations.calculateNonTelescopicCharges(
+          telescopicBilling,
+          req.body.singlePhase,
+          monthlyConsumption
+        );
+      }
+
+      billObject.monthlySummary = await calculations.calculateMonthlyTotals(
+        billObject.meterRent,
+        billObject.energyCharge,
+        billObject.fixedCharge,
         monthlyConsumption
       );
+
+      billObject.bimonthlySummary = await calculations.calculateBiMonthlyTotals(
+        billObject.monthlySummary,
+        req.body.numberOfMonths
+      );
+
+      res.json(billObject);
+    }else{
+      res.json({error:"Consumption is in negative,please validate inputs"})
     }
-
-    billObject.monthlySummary = await calculations.calculateMonthlyTotals(
-      billObject.meterRent,
-      billObject.energyCharge,
-      billObject.fixedCharge,
-      monthlyConsumption
-    );
-
-    billObject.bimonthlySummary = await calculations.calculateBiMonthlyTotals(
-      billObject.monthlySummary,req.body.numberOfMonths
-    );
-
-    res.json(billObject);
   },
 };
