@@ -20,7 +20,7 @@ module.exports = {
     };
 
     totalUnits = req.body.finalReading - req.body.startingReading;
-    monthlyConsumption = Math.floor(totalUnits / 2);
+    monthlyConsumption = totalUnits / req.body.numberOfMonths;
     telescopicBilling = monthlyConsumption <= telescopicLimit ? true : false;
     billObject.connectionDetails.telescopicBilling = telescopicBilling;
 
@@ -57,7 +57,7 @@ module.exports = {
     );
 
     billObject.bimonthlySummary = await calculations.calculateBiMonthlyTotals(
-      billObject.monthlySummary
+      billObject.monthlySummary,req.body.numberOfMonths
     );
 
     res.json(billObject);
