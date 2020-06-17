@@ -16,7 +16,7 @@ class InputForm extends Component {
     billGenerated: false,
     billObject: {},
     disclaimerLine1:
-      "Disclaimer: This is not an official tool from KSEB, there are some known gaps in calculating fuel.",
+      "Disclaimer: This is not an official tool from KSEB, there are some known gaps in calculating fuel surcharge.",
     disclaimerLine2: "Please consider this as an indicative tool only",
   };
 
