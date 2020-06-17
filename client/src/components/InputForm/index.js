@@ -10,7 +10,7 @@ class InputForm extends Component {
     startingReading: 0,
     finalReading: 0,
     numberOfMonths: 1,
-    singlePhase: false,
+    singlePhase: true,
     validated: false,
     customerMeter: false,
     billGenerated: false,
@@ -308,7 +308,20 @@ class InputForm extends Component {
               </tbody>
             </Table>
           ) : (
-            <h3>No Bill to display</h3>
+            <>
+              <p>
+                <i>
+                  Disclaimer: This is not an official tool from KSEB, there are
+                  some known gaps in calculating fuel.
+                </i>
+              </p>
+              <p>
+                <i>
+                  Please consider this as an indicative tool and not a perfect
+                  one.
+                </i>
+              </p>
+            </>
           )}
         </Container>
       </>
