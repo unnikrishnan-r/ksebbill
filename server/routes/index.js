@@ -9,11 +9,11 @@ const db = require("../database/models");
 router.use("/api", apiRoutes);
 
 // This is temporary. For somereason the API route is not hitting the above code, hence altered it this way
-// router.get("/api/projects", function (req, res) {
-//   db.Projects.findAll({})
-//     .then((projectList) => res.json(projectList))
-//     .catch((err) => res.status(422).json(err));
-// });
+router.get("/api/projects", function (req, res) {
+  db.Projects.findAll({})
+    .then((projectList) => res.json(projectList))
+    .catch((err) => res.status(422).json(err));
+});
 
 // If no API routes are hit, send the React app
 router.use(function (req, res) {

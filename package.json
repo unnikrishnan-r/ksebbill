@@ -10,7 +10,7 @@
     "precommit": "lint-staged",
     "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
     "start:prod": "node ./server/server.js",
-    "start:dev": "concurrently \"nodemon ./server --ignore 'client/*'\" ",
+    "start:dev": "concurrently \"nodemon ./server --ignore 'client/*'\" \"npm run client\"",
     "client": "cd client && npm run start",
     "install": "(cd server && npm install) && (cd client && npm install)",
     "build": "cd client && npm run build",
@@ -23,7 +23,6 @@
   "author": "Unnikrishnan Ramachandran",
   "license": "ISC",
   "devDependencies": {
-    "babel-eslint": "10.0.3",
     "concurrently": "^4.1.2",
     "eslint": "^6.1.0",
     "eslint-config-prettier": "^4.3.0",
@@ -32,7 +31,6 @@
     "prettier": "^1.19.1"
   },
   "dependencies": {
-    "@babel/runtime": "^7.7.2",
     "dotenv": "^8.2.0",
     "express": "^4.16.3",
     "if-env": "^1.0.4"
