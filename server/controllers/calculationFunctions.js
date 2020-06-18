@@ -76,8 +76,11 @@ module.exports = {
       monthlySummaryObj.totalAmount * numberOfMonths;
     bimonthlySummaryObj.fuelSurcharge =
       monthlySummaryObj.fuelSurcharge * numberOfMonths;
-    bimonthlySummaryObj.doorlockAdj =
-      parseFloat((bimonthlySummaryObj.totalAmount - doorlockbillamount).toFixed(2));
+    bimonthlySummaryObj.doorlockAdj = numberOfMonths == 4
+      ? parseFloat(
+          (bimonthlySummaryObj.totalAmount - doorlockbillamount).toFixed(2)
+        )
+      : 0;
     bimonthlySummaryObj.previousDue = doorlockbillamount - doorlockpaidamount;
 
     return bimonthlySummaryObj;
