@@ -61,21 +61,21 @@ module.exports = {
       doorlockAdj: 0,
       previousDue: 0,
     };
-    numberOfMonths = 2;
+    // numberOfMonths = 2;
     bimonthlySummaryObj.totalConsumption =
-      monthlySummaryObj.monthlyConsumption * numberOfMonths;
+      monthlySummaryObj.monthlyConsumption * 2;
     bimonthlySummaryObj.fixedCharge =
-      monthlySummaryObj.fixedCharge * numberOfMonths;
+      monthlySummaryObj.fixedCharge * 2;
     bimonthlySummaryObj.meterCharge =
-      monthlySummaryObj.meterCharge * numberOfMonths;
+      monthlySummaryObj.meterCharge * 2;
     bimonthlySummaryObj.energyCharge =
-      monthlySummaryObj.energyCharge * numberOfMonths;
+      monthlySummaryObj.energyCharge * 2;
     bimonthlySummaryObj.energyDuty =
-      monthlySummaryObj.energyDuty * numberOfMonths;
+      monthlySummaryObj.energyDuty * 2;
     bimonthlySummaryObj.totalAmount =
-      monthlySummaryObj.totalAmount * numberOfMonths;
+      monthlySummaryObj.totalAmount * 2;
     bimonthlySummaryObj.fuelSurcharge =
-      monthlySummaryObj.fuelSurcharge * numberOfMonths;
+      monthlySummaryObj.fuelSurcharge * 2;
     bimonthlySummaryObj.doorlockAdj = numberOfMonths == 4
       ? parseFloat(
           (bimonthlySummaryObj.totalAmount - doorlockbillamount).toFixed(2)
