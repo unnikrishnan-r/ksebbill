@@ -9,6 +9,8 @@ class InputForm extends Component {
   state = {
     startingReading: 0,
     finalReading: 0,
+    doorlockreading: 0,
+    doorlockpaidamount: 0,
     numberOfMonths: 1,
     singlePhase: true,
     validated: false,
@@ -49,11 +51,12 @@ class InputForm extends Component {
         startingReading: this.state.startingReading,
         finalReading: this.state.finalReading,
         numberOfMonths: this.state.numberOfMonths,
+        doorlockreading: this.state.doorlockreading,
+        doorlockpaidamount: this.state.doorlockpaidamount
       };
       console.log(billInput);
       API.generateBill(billInput)
         .then((response) => {
-          console.log(response.data.error);
           if (!response.data.error) {
             this.setState({ billGenerated: true, billObject: response.data });
           } else {
@@ -129,6 +132,34 @@ class InputForm extends Component {
                   <option>3</option>
                   <option>4</option>
                 </Form.Control>
+              </Form.Group>
+            </Row>
+            <Row>
+              <Form.Group as={Col} md={3} controlId="validationCustom05">
+                <Form.Label>
+                  <strong>Door Lock ബില്ല് തുക</strong>
+                </Form.Label>
+
+                <Form.Control
+                  size="lg"
+                  type="number"
+                  onChange={this.handleInputChange}
+                  value={this.state.doorlockreading}
+                  name="doorlockreading"
+                />
+              </Form.Group>
+              <Form.Group as={Col} md={3} controlId="validationCustom05">
+                <Form.Label>
+                  <strong>അടച്ച തുക</strong>
+                </Form.Label>
+
+                <Form.Control
+                  size="lg"
+                  type="number"
+                  onChange={this.handleInputChange}
+                  value={this.state.doorlockpaidamount}
+                  name="doorlockpaidamount"
+                />
               </Form.Group>
               <Form.Group as={Col} md={3}>
                 <Form.Check
