@@ -7,10 +7,10 @@ import API from "../../utils/API";
 
 class InputForm extends Component {
   state = {
-    startingReading: 9689,
-    finalReading: 11125,
-    doorlockbillamount: 5198,
-    doorlockpaidamount: 5000,
+    startingReading: 0,
+    finalReading: 0,
+    doorlockbillamount: 0,
+    doorlockpaidamount: 0,
     numberOfMonths: 1,
     singlePhase: true,
     validated: false,
@@ -296,7 +296,7 @@ class InputForm extends Component {
                 <tr>
                   <td>9</td>
                   <td>
-                    Door Lock Adjustment (
+                    Approx Door Lock Adjustment (
                     {this.state.billObject.bimonthlySummary.totalAmount} -{" "}
                     {this.state.doorlockbillamount})
                   </td>
