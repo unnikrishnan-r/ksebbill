@@ -294,20 +294,18 @@ class InputForm extends Component {
                 </tr>
                 <tr>
                   <td>9</td>
-                  <td>
-                    Approx Door Lock Adjustment (
-                    {this.state.billObject.bimonthlySummary.totalAmount} -{" "}
-                    {this.state.doorlockbillamount})
+                  <td style={{ whiteSpace: "pre-line" }}>
+                    Approx Door Lock Adjustment {"\n"}  
+                    <i>
+                      <strong>for 4 month reading only</strong>
+                    </i>
                   </td>
                   <td></td>
                   <td>{this.state.billObject.bimonthlySummary.doorlockAdj}</td>
                 </tr>
                 <tr>
                   <td>10</td>
-                  <td>
-                    Pending from previous bill ({this.state.doorlockbillamount}{" "}
-                    - {this.state.doorlockpaidamount})
-                  </td>
+                  <td>Pending from previous bill</td>
                   <td></td>
                   <td>{this.state.billObject.bimonthlySummary.previousDue}</td>
                 </tr>
