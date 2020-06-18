@@ -44,7 +44,12 @@ module.exports = {
     return monthlySummaryObj;
   },
 
-  calculateBiMonthlyTotals: async function(monthlySummaryObj,numberOfMonths) {
+  calculateBiMonthlyTotals: async function(
+    monthlySummaryObj,
+    numberOfMonths,
+    doorlockbillamount,
+    doorlockpaidamount
+  ) {
     var bimonthlySummaryObj = {
       totalConsumption: 0,
       totalAmount: 0,
@@ -53,16 +58,27 @@ module.exports = {
       energyCharge: 0,
       energyDuty: 0,
       fuelSurcharge: 0,
+      doorlockAdj: 0,
+      previousDue: 0,
     };
     numberOfMonths = 2;
     bimonthlySummaryObj.totalConsumption =
       monthlySummaryObj.monthlyConsumption * numberOfMonths;
-    bimonthlySummaryObj.fixedCharge = monthlySummaryObj.fixedCharge * numberOfMonths;
-    bimonthlySummaryObj.meterCharge = monthlySummaryObj.meterCharge * numberOfMonths;
-    bimonthlySummaryObj.energyCharge = monthlySummaryObj.energyCharge * numberOfMonths;
-    bimonthlySummaryObj.energyDuty = monthlySummaryObj.energyDuty * numberOfMonths;
-    bimonthlySummaryObj.totalAmount = monthlySummaryObj.totalAmount * numberOfMonths;
-    bimonthlySummaryObj.fuelSurcharge = monthlySummaryObj.fuelSurcharge * numberOfMonths;
+    bimonthlySummaryObj.fixedCharge =
+      monthlySummaryObj.fixedCharge * numberOfMonths;
+    bimonthlySummaryObj.meterCharge =
+      monthlySummaryObj.meterCharge * numberOfMonths;
+    bimonthlySummaryObj.energyCharge =
+      monthlySummaryObj.energyCharge * numberOfMonths;
+    bimonthlySummaryObj.energyDuty =
+      monthlySummaryObj.energyDuty * numberOfMonths;
+    bimonthlySummaryObj.totalAmount =
+      monthlySummaryObj.totalAmount * numberOfMonths;
+    bimonthlySummaryObj.fuelSurcharge =
+      monthlySummaryObj.fuelSurcharge * numberOfMonths;
+    bimonthlySummaryObj.doorlockAdj =
+      parseFloat((bimonthlySummaryObj.totalAmount - doorlockbillamount).toFixed(2));
+    bimonthlySummaryObj.previousDue = doorlockbillamount - doorlockpaidamount;
 
     return bimonthlySummaryObj;
   },

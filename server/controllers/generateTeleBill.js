@@ -59,7 +59,9 @@ module.exports = {
 
       billObject.bimonthlySummary = await calculations.calculateBiMonthlyTotals(
         billObject.monthlySummary,
-        req.body.numberOfMonths
+        req.body.numberOfMonths,
+        req.body.doorlockbillamount,
+        req.body.doorlockpaidamount
       );
 
       res.json(billObject);

@@ -7,10 +7,10 @@ import API from "../../utils/API";
 
 class InputForm extends Component {
   state = {
-    startingReading: 0,
-    finalReading: 0,
-    doorlockreading: 0,
-    doorlockpaidamount: 0,
+    startingReading: 9689,
+    finalReading: 11125,
+    doorlockbillamount: 5198,
+    doorlockpaidamount: 5000,
     numberOfMonths: 1,
     singlePhase: true,
     validated: false,
@@ -51,13 +51,14 @@ class InputForm extends Component {
         startingReading: this.state.startingReading,
         finalReading: this.state.finalReading,
         numberOfMonths: this.state.numberOfMonths,
-        doorlockreading: this.state.doorlockreading,
-        doorlockpaidamount: this.state.doorlockpaidamount
+        doorlockbillamount: this.state.doorlockbillamount,
+        doorlockpaidamount: this.state.doorlockpaidamount,
       };
       console.log(billInput);
       API.generateBill(billInput)
         .then((response) => {
           if (!response.data.error) {
+            console.log(response.data);
             this.setState({ billGenerated: true, billObject: response.data });
           } else {
             this.setState({
@@ -144,8 +145,8 @@ class InputForm extends Component {
                   size="lg"
                   type="number"
                   onChange={this.handleInputChange}
-                  value={this.state.doorlockreading}
-                  name="doorlockreading"
+                  value={this.state.doorlockbillamount}
+                  name="doorlockbillamount"
                 />
               </Form.Group>
               <Form.Group as={Col} md={3} controlId="validationCustom05">
@@ -192,9 +193,6 @@ class InputForm extends Component {
                   <th></th>
                   <th>പ്രതിമാസ ചാർജുകൾ</th>
                   <th> 2 മാസത്തെ ചാർജുകൾ </th>
-                  {this.state.numberOfMonths > 2 ? (
-                    <th> {this.state.numberOfMonths} മാസത്തെ ചാർജുകൾ </th>
-                  ) : null}
                 </tr>
               </thead>
               <tbody>
@@ -207,12 +205,6 @@ class InputForm extends Component {
                   <td>
                     {this.state.billObject.bimonthlySummary.totalConsumption}
                   </td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      {this.state.billObject.monthlySummary.monthlyConsumption *
-                        this.state.numberOfMonths}
-                    </td>
-                  ) : null}
                 </tr>
 
                 <tr>
@@ -228,37 +220,18 @@ class InputForm extends Component {
                       ? "Y"
                       : "N"}
                   </td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      {this.state.billObject.connectionDetails.telescopicBilling
-                        ? "Y"
-                        : "N"}
-                    </td>
-                  ) : null}
                 </tr>
                 <tr>
                   <td>3</td>
                   <td>Fixed Charges</td>
                   <td>{this.state.billObject.monthlySummary.fixedCharge}</td>
                   <td>{this.state.billObject.bimonthlySummary.fixedCharge}</td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      {this.state.billObject.monthlySummary.fixedCharge *
-                        this.state.numberOfMonths}
-                    </td>
-                  ) : null}
                 </tr>
                 <tr>
                   <td>4</td>
                   <td>Meter Rent, Cess, GST</td>
                   <td>{this.state.billObject.monthlySummary.meterCharge}</td>
                   <td>{this.state.billObject.bimonthlySummary.meterCharge}</td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      {this.state.billObject.monthlySummary.meterCharge *
-                        this.state.numberOfMonths}
-                    </td>
-                  ) : null}
                 </tr>
                 <tr className="bg-primary">
                   <td>5</td>
@@ -275,14 +248,6 @@ class InputForm extends Component {
                       {this.state.billObject.bimonthlySummary.energyCharge}
                     </strong>
                   </td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      <strong>
-                        {this.state.billObject.monthlySummary.energyCharge *
-                          this.state.numberOfMonths}
-                      </strong>
-                    </td>
-                  ) : null}
                 </tr>
                 {this.state.billObject.energyCharge.slabs.map((slab) => {
                   return (
@@ -295,7 +260,6 @@ class InputForm extends Component {
                         <i>{slab[Object.keys(slab)]}</i>
                       </td>
                       <td></td>
-                      {this.state.numberOfMonths > 2 ? <td></td> : null}
                     </tr>
                   );
                 })}
@@ -304,12 +268,6 @@ class InputForm extends Component {
                   <td>Energy Duty @ 10%</td>
                   <td>{this.state.billObject.monthlySummary.energyDuty}</td>
                   <td>{this.state.billObject.bimonthlySummary.energyDuty}</td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      {this.state.billObject.monthlySummary.energyDuty *
-                        this.state.numberOfMonths}
-                    </td>
-                  ) : null}
                 </tr>
                 <tr>
                   <td>7</td>
@@ -318,17 +276,11 @@ class InputForm extends Component {
                   <td>
                     {this.state.billObject.bimonthlySummary.fuelSurcharge}
                   </td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      {this.state.billObject.monthlySummary.fuelSurcharge *
-                        this.state.numberOfMonths}
-                    </td>
-                  ) : null}
                 </tr>
-                <tr className="bg-success">
+                <tr className="bg-info">
                   <td>8</td>
                   <td>
-                    <strong>Grant Total (3+4+5+6+7)</strong>
+                    <strong>Grand Total (3+4+5+6+7)</strong>
                   </td>
                   <td>
                     <strong>
@@ -340,14 +292,39 @@ class InputForm extends Component {
                       {this.state.billObject.bimonthlySummary.totalAmount}
                     </strong>
                   </td>
-                  {this.state.numberOfMonths > 2 ? (
-                    <td>
-                      <strong>
-                        {this.state.billObject.monthlySummary.totalAmount *
-                          this.state.numberOfMonths}
-                      </strong>
-                    </td>
-                  ) : null}
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>
+                    Door Lock Adjustment (
+                    {this.state.billObject.bimonthlySummary.totalAmount} -{" "}
+                    {this.state.doorlockbillamount})
+                  </td>
+                  <td></td>
+                  <td>{this.state.billObject.bimonthlySummary.doorlockAdj}</td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>
+                    Pending from previous bill ({this.state.doorlockbillamount}{" "}
+                    - {this.state.doorlockpaidamount})
+                  </td>
+                  <td></td>
+                  <td>{this.state.billObject.bimonthlySummary.previousDue}</td>
+                </tr>
+                <tr className="bg-success">
+                  <td>11</td>
+                  <td>
+                    <strong>Amount Due</strong>
+                  </td>
+                  <td></td>
+                  <td>
+                    <strong>
+                      {this.state.billObject.bimonthlySummary.totalAmount +
+                        this.state.billObject.bimonthlySummary.doorlockAdj +
+                        this.state.billObject.bimonthlySummary.previousDue}
+                    </strong>
+                  </td>
                 </tr>
               </tbody>
             </Table>
